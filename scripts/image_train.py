@@ -17,19 +17,30 @@ from improved_diffusion.train_util import TrainLoop
 
 
 def main():
+    # 初始化 argparser
     args = create_argparser().parse_args()
 
+    # 用于设置分布式处理组，用于并行计算
     dist_util.setup_dist()
     logger.configure()
 
     logger.log("creating model and diffusion...")
+
+    # 创建预测模型和diffusion框架
     model, diffusion = create_model_and_diffusion(
+        # args 是一个很大的map，这里只传入和model and diffusion相关的键值作为入参
         **args_to_dict(args, model_and_diffusion_defaults().keys())
     )
+
+    # 类似于to(device)
     model.to(dist_util.dev())
+
+    # 创建时间步t的采样器
     schedule_sampler = create_named_schedule_sampler(args.schedule_sampler, diffusion)
 
     logger.log("creating data loader...")
+
+    # 创建 DataLoader
     data = load_data(
         data_dir=args.data_dir,
         batch_size=args.batch_size,
@@ -58,6 +69,9 @@ def main():
 
 
 def create_argparser():
+    """
+    从字典中自动生成argument parser
+    """
     defaults = dict(
         data_dir="",
         schedule_sampler="uniform",
@@ -73,9 +87,15 @@ def create_argparser():
         use_fp16=False,
         fp16_scale_growth=1e-3,
     )
+    # 合并字典defaults & model_and_diffusion_defaults
     defaults.update(model_and_diffusion_defaults())
+
+    # init parser
     parser = argparse.ArgumentParser()
+
+    # 高效方法创建parser，从字典中解析arg即可
     add_dict_to_argparser(parser, defaults)
+
     return parser
 
 

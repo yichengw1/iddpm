@@ -7,6 +7,7 @@ import torch.distributed as dist
 
 def create_named_schedule_sampler(name, diffusion):
     """
+    基于训练集和t的采样训练，设置如何采样t，氛围均匀采样和基于loss进行重要性采样
     Create a ScheduleSampler from a library of pre-defined samplers.
 
     :param name: the name of the sampler.
